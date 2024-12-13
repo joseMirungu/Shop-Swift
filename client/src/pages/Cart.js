@@ -56,20 +56,28 @@ const Cart = () => {
       .catch(error => console.error('Error:', error));
   };
 
-  const handleCheckout = () => {
-    fetch('http://localhost:5555/api/orders', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(res => {
-        if (res.ok) {
-          navigate('/orders');
+  const handleCheckout = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/orders', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      })
-      .catch(error => console.error('Error:', error));
+      });
+  
+      if (response.ok) {
+        alert("Successfully bought!");
+        navigate('/orders');
+      } else {
+        const errorData = await response.json();
+        alert(`Checkout failed: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred during checkout. Please try again.');
+    }
   };
+  
 
   const total = cartItems.reduce((sum, item) => 
     sum + (item.product.price * item.quantity), 0
