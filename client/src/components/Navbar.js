@@ -1,12 +1,12 @@
-// client/src/components/Navbar.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCartIcon, UserIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
-const Navbar = () => {
+const Navbar = ({ products = [] }) => {
   const { isAuthenticated, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
@@ -14,8 +14,15 @@ const Navbar = () => {
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
-    // Handle search logic here
-    console.log('Search query:', searchQuery);
+    if (!products || products.length === 0) {
+      console.error('Products data is not available');
+      return;
+    }
+    const results = products.filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredProducts(results);
+    console.log('Search results:', results);
   };
 
   return (
@@ -24,7 +31,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-red-600">
-              Swift shop
+              Shop Swift
             </Link>
           </div>
           <form onSubmit={handleSearchSubmit} className="flex items-center">
@@ -54,10 +61,7 @@ const Navbar = () => {
                 <Link to="/account" className="text-gray-600 hover:text-gray-900">
                   <UserIcon className="h-6 w-6" />
                 </Link>
-                <button
-                  onClick={logout}
-                  className="text-gray-600 hover:text-gray-900"
-                >
+                <button onClick={logout} className="text-gray-600 hover:text-gray-900">
                   Logout
                 </button>
               </>
@@ -77,6 +81,18 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      {filteredProducts.length > 0 && (
+        <div className="mt-4">
+          <h2 className="text-lg font-bold">Search Results:</h2>
+          <ul>
+            {filteredProducts.map((product) => (
+              <li key={product.id} className="border-b border-gray-300 py-2">
+                {product.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </nav>
   );
 };

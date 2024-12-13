@@ -31,10 +31,10 @@ const Footer = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Link to="/" className="text-xl font-bold text-red-600">
-              Swift shop
+              Shop Swift
             </Link>
             <p className="text-gray-600">
-              &copy; {new Date().getFullYear()} Swift Shop. All rights reserved.
+              &copy; {new Date().getFullYear()}  Shop Swift. All rights reserved.
             </p>
           </div>
           <div className="flex items-center space-x-4">
