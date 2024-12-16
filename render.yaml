@@ -2,14 +2,11 @@ services:
   - type: web
     name: shop-swift
     env: python
-    region: oregon
     buildCommand: pip install -r requirements.txt
-    startCommand: cd /opt/render/project/src && gunicorn run:app
+    startCommand: gunicorn wsgi:app --chdir /opt/render/project/src
     envVars:
       - key: PYTHON_VERSION
-        value: "3.11.0"
-      - key: FLASK_APP
-        value: run.py
+        value: 3.11.0
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL
