@@ -3,7 +3,7 @@ services:
     name: shop-swift
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app --chdir /opt/render/project/src
+    startCommand: gunicorn wsgi:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -13,6 +13,8 @@ services:
         fromDatabase:
           name: shop-swift-db
           property: connectionString
+      - key: PYTHONPATH
+        value: /opt/render/project/src
 
 databases:
   - name: shop-swift-db
