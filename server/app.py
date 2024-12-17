@@ -18,34 +18,23 @@ if database_url:
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
-# Replace your current static file config with this:
+#  the static file configuration section
 if os.environ.get('FLASK_ENV') == 'production':
-    app.static_folder = os.path.join('client', 'build', 'static')
-    app.static_url_path = '/static'
+    app.static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
+    app.static_url_path = ''
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
         if path.startswith('api'):
-            return {'error': 'Not Found'}, 404
+            return jsonify({'error': 'Not Found'}), 404
         try:
-            # First try to serve static files
-            if path and os.path.exists(os.path.join('client', 'build', path)):
-                return send_from_directory(os.path.join('client', 'build'), path)
-            # Default to index.html
-            return send_from_directory(os.path.join('client', 'build'), 'index.html')
+            if path and os.path.exists(os.path.join(app.static_folder, path)):
+                return send_from_directory(app.static_folder, path)
+            return send_from_directory(app.static_folder, 'index.html')
         except Exception as e:
+            app.logger.error(f"Error serving file: {str(e)}")
             return jsonify({'error': str(e)}), 500
-
-@app.errorhandler(404)
-def not_found_error(error):
-    if request.path.startswith('/api/'):
-        return jsonify({"error": "API endpoint not found"}), 404
-    try:
-        return send_from_directory(os.path.join('client', 'build'), 'index.html')
-    except:
-        return jsonify({"error": "Not Found"}), 404
-    
 # User Authentication Routes
 class Signup(Resource):
     def post(self):
