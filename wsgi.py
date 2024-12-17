@@ -2,7 +2,8 @@ import os
 import sys
 from pathlib import Path
 
-from seed import seed_data
+from server.seed import seed_data
+seed_data()
 
 # Get absolute paths
 root_dir = Path(__file__).resolve().parent
@@ -37,5 +38,4 @@ def debug_paths():
 
 
 if __name__ == "__main__":
-    seed_data()
     app.run()
