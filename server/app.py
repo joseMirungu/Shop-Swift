@@ -7,21 +7,28 @@ from config import app, db, api
 from models import User, Product, Category, CartItem, Order, OrderItem
 
 # Configure CORS
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})  # Updated CORS config
 
 # Update database configuration for production
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
+# Configure static file serving for production
 if os.environ.get('FLASK_ENV') == 'production':
-    app.static_folder = 'client/build'
+    app.static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'client', 'build')
     app.static_url_path = ''
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        if path.startswith('api'):
+            return {"error": "Not Found"}, 404
+        if path and os.path.exists(os.path.join(app.static_folder, path)):
             return send_from_directory(app.static_folder, path)
         return send_from_directory(app.static_folder, 'index.html')
     
@@ -235,6 +242,16 @@ class OrderById(Resource):
             return order.to_dict()
         except Exception as e:
             return {'error': str(e)}, 404
+@app.errorhandler(404)
+def not_found_error(error):
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "API endpoint not found"}), 404
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return jsonify({"error": "Internal Server Error"}), 500
 
 # Add resources to API
 api.add_resource(Signup, '/api/signup')
@@ -247,10 +264,30 @@ api.add_resource(CartItemDetail, '/api/cart/<int:id>')
 api.add_resource(Orders, '/api/orders')
 api.add_resource(OrderById, '/api/orders/<int:id>')
 
-# Add a health check endpoint
 @app.route('/health')
 def health_check():
-    return jsonify({'status': 'healthy'}), 200
+    try:
+        db.session.execute('SELECT 1')
+        return jsonify({
+            'status': 'healthy',
+            'database': 'connected'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'database': 'disconnected',
+            'error': str(e)
+        }), 500
+
+# CORS headers 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    port = int(os.environ.get("PORT", 5555))
+    app.run(host='0.0.0.0', port=port)
