@@ -18,23 +18,44 @@ if database_url:
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
-#  the static file configuration section
+# Update the static file serving configuration
 if os.environ.get('FLASK_ENV') == 'production':
-    app.static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
+    # Set the static folder to the root build directory
+    app.static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'client', 'build')
     app.static_url_path = ''
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        if path.startswith('api'):
+        if path.startswith('api/'):
             return jsonify({'error': 'Not Found'}), 404
+            
+        # First try to send index.html
+        if not path:
+            return send_from_directory(app.static_folder, 'index.html')
+            
+        # Then try to send the specific file
         try:
-            if path and os.path.exists(os.path.join(app.static_folder, path)):
+            if os.path.exists(os.path.join(app.static_folder, path)):
                 return send_from_directory(app.static_folder, path)
+            # Default back to index.html for client-side routing
             return send_from_directory(app.static_folder, 'index.html')
         except Exception as e:
-            app.logger.error(f"Error serving file: {str(e)}")
-            return jsonify({'error': str(e)}), 500
+            app.logger.error(f"Error serving {path}: {e}")
+            return send_from_directory(app.static_folder, 'index.html')
+
+# Add this to debug static files
+@app.route('/api/debug')
+def debug():
+    return jsonify({
+        'static_folder': app.static_folder,
+        'static_url_path': app.static_url_path,
+        'build_exists': os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'client', 'build')),
+        'index_exists': os.path.exists(os.path.join(app.static_folder, 'index.html')),
+        'current_dir': os.getcwd(),
+        'files': os.listdir(app.static_folder) if os.path.exists(app.static_folder) else []
+    })
+
 # User Authentication Routes
 class Signup(Resource):
     def post(self):
