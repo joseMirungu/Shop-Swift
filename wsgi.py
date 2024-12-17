@@ -35,6 +35,7 @@ def debug_paths():
         'index_exists': os.path.exists(str(root_dir / 'client' / 'build' / 'index.html')),
     }
 
+
 if __name__ == "__main__":
     seed_data()
     app.run()
