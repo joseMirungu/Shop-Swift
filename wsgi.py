@@ -3,8 +3,6 @@ import sys
 from pathlib import Path
 
 
-from server.seed import seed_data
-
 # Get absolute paths
 root_dir = Path(__file__).resolve().parent
 server_dir = root_dir / 'server'
@@ -38,5 +36,4 @@ def debug_paths():
 
 
 if __name__ == "__main__":
-    seed_data()
     app.run()
