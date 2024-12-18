@@ -5,8 +5,8 @@ from flask_cors import CORS
 import os
 from config import app, db, api
 from models import User, Product, Category, CartItem, Order, OrderItem
-from seed import seed_data
-seed_data()
+# from seed import seed_data
+# seed_data()
 
 # Configure CORS
 CORS(app, resources={r"/api/*": {"origins": "*"}})  # Updated CORS config

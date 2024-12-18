@@ -56,6 +56,34 @@ Initialize the database:
 Run the Flask server:
     python app.py
 
+### Accessing the Application
+To access the application locally, open your browser and navigate to:
+
+React frontend: http://localhost:3000
+
+Flask backend: http://localhost:5555
+
+## Live Demo
+You can access the live deployed application at the following link:
+
+Live Application: (https://shop-swift-2.onrender.com/)
+
+## Screenshots
+Home Page
+![alt text](image.png)
+
+Product Listing
+![alt text](image-1.png)
+
+Shopping Cart
+![alt text](image-2.png)
+
+Placing an Order
+![alt text](image-3.png)
+
+Order History
+![alt text](image-4.png)
+
 ### Contributing
 Contributions are welcome! Please submit a pull request or open an issue.
 
